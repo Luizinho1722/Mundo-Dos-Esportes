@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mundo Dos Esportes</title>
+  <style>
+    *{box-sizing: border-box;}
+    body{font-family: Arial;padding: 10px;background-color: burlywood;}
+    .header h1 {font-size: 50px;}
+
+    .topnav{overflow: hidden;background-color: #333;}
+    .topnav a{float: left;display: block;
+              color: darkkhaki;text-align: center;
+              padding: 14px 16px ;text-decoration: none; }
+    .topnav a:hover{background-color: #ddd;color: black;}     
+  </style>
+</head>
+<body>
+  <div class="topnav">
+    <a href="Catalago.html">Catálogo</a>
+    <a href="Chuteiras.html">Chuteiras</a>
+  </div>
+
+  <div class="container">
+    <ul id="products">
+      <li data-name="Chuteira Umbro Game 40" data-price="150">
+        <h2>Chuteira Umbro Game 40</h2>
+        <img src="Chuteira Umbro.jpg" alt="Chuteira Umbro Game 40" width="300" height="200">
+        <p>Selecione a cor:</p>
+        <button class="colorButton selectedColor" data-color="Chuteira Umbro.jpg">Preto e amarelo</button>
+        <button class="colorButton" data-color="Bola Penalty.jpg">Azul e Verde</button>
+        <button class="colorButton" data-color="ChuteiraUmbroGame40-3.jpg">Cor 3</button>
+        <p>Preço: R$ 150</p>
+        <button class="addToCartButton">Adicionar ao carrinho</button>
+      </li>
+      <!-- Adicione outros produtos aqui -->
+    </ul>
+  </div>
+
+  <div id="cart">
+    <!-- Aqui serão exibidos os itens do carrinho -->
+  </div>
+  <div id="total">
+    <!-- Aqui será exibido o valor total do carrinho -->
+  </div>
+  <button id="sendOrder">Enviar Pedido</button>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const cart = document.getElementById("cart");
+      const totalElement = document.getElementById("total");
+      const sendOrderButton = document.getElementById("sendOrder");
+      const contactNumber = "+5581991929953"; // Substitua pelo número de telefone do contato com o código do país e sem caracteres especiais
+
+      const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+      let totalPrice = 0;
+      updateCartDisplay(storedCart);
+
+      const products = document.querySelectorAll("#products li");
+      products.forEach((product) => {
+        const addToCartButton = product.querySelector(".addToCartButton");
+        addToCartButton.addEventListener("click", function () {
+          const name = product.dataset.name;
+          const price = parseFloat(product.dataset.price);
+          const color = product.querySelector(".selectedColor").innerText; // Obter a cor selecionada
+          const item = { name, price, color }; // Incluir a cor no item do carrinho
+
+          storedCart.push(item);
+          updateCartDisplay(storedCart);
+          localStorage.setItem("cart", JSON.stringify(storedCart));
+        });
+
+        const colorButtons = product.querySelectorAll(".colorButton");
+        colorButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const selectedColorElement = product.querySelector(".selectedColor");
+            selectedColorElement.classList.remove("selectedColor"); // Remover a classe de todos os botões de cores
+            button.classList.add("selectedColor"); // Adicionar a classe apenas ao botão selecionado
+
+            const colorImage = button.dataset.color;
+            const productImage = product.querySelector("img");
+            productImage.src = colorImage;
+          });
+        });
+      });
+
+      function updateCartDisplay(cartItems) {
+        cart.innerHTML = "";
+        if (cartItems.length === 0) {
+          cart.innerHTML = "<p>O carrinho está vazio.</p>";
+        } else {
+          totalPrice = 0;
+          cartItems.forEach((item, index) => {
+            const itemElement = document.createElement("div");
+            itemElement.innerHTML = `${item.name} - R$ ${item.price.toFixed(2)} (Cor: ${item.color})`; // Incluir a cor na exibição do item
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Excluir";
+            deleteButton.addEventListener("click", function () {
+              storedCart.splice(index, 1);
+              updateCartDisplay(storedCart);
+              localStorage.setItem("cart", JSON.stringify(storedCart));
+            });
+
+            itemElement.appendChild(deleteButton);
+            cart.appendChild(itemElement);
+
+            totalPrice += item.price;
+          });
+
+          totalElement.innerHTML = `Valor Total do Carrinho: R$ ${totalPrice.toFixed(2)}`;
+        }
+      }
+
+      sendOrderButton.addEventListener("click", function () {
+        if (storedCart.length === 0) {
+          alert("Seu carrinho está vazio. Adicione itens antes de enviar o pedido.");
+        } else {
+          const orderMessage = generateOrderMessage(storedCart, totalPrice);
+          const whatsappURL = `https://api.whatsapp.com/send?phone=${contactNumber}&text=${encodeURIComponent(
+            orderMessage
+          )}`;
+          window.open(whatsappURL, "_blank");
+        }
+      });
+
+      function generateOrderMessage(cartItems, totalPrice) {
+        let message = "Pedido do Carrinho de Compras:\n";
+        cartItems.forEach((item, index) => {
+          message += `${index + 1}. ${item.name} - R$ ${item.price.toFixed(2)} (Cor: ${item.color})\n`; // Incluir a cor na mensagem
+        });
+        message += `Valor Total: R$ ${totalPrice.toFixed(2)}`;
+        return message;
+      }
+    });
+  </script>
+</body>
+</html>
